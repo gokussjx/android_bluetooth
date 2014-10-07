@@ -483,29 +483,35 @@ class BluetoothOppNotification {
             long timeStamp = cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP));
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
 
-            Notification n = new Notification.Builder(this);
-            n.setSmallIcon(R.drawable.bt_incomming_file_notification);
-            n.setOnlyAlertOnce(true);
-            n.setOngoing(true);
-            n.setDefaults(Notification.DEFAULT_SOUND);
-            n.setTicker(title);
+            PendingIntent incomingPendingIntent;
+            PendingIntent hidePendingIntent;
 
             Intent intent = new Intent(Constants.ACTION_INCOMING_FILE_CONFIRM);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             intent.setDataAndNormalize(contentUri);
 
-            n.setWhen(timeStamp);
-            n.setStyle(new NotificationCompat.BigTextStyle().bigText());
-            n.addAction(R.drawable.ic_action_accept , getString(R.string.incoming_file_confirm_ok), PendingIntent.getBroadcast(mContext, 0,
-                intent, 0));
-            n.addAction(R.drawable.ic_action_cancel , getString(R.string.incoming_file_confirm_cancel), PendingIntent.getBroadcast(mContext, 0,
-                intent, 0));
-            n.build();
+            incomingPendingIntent = PendingIntent.getBroadcast(mContext, 0, intent, 0);
 
             intent = new Intent(Constants.ACTION_HIDE);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             intent.setDataAndNormalize(contentUri);
-            n.setDeleteIntent(PendingIntent.getBroadcast(mContext, 0, intent, 0));
+
+            hidePendingIntent = PendingIntent.getBroadcast(mContext, 0, intent, 0);
+
+            Notification n = new Notification.Builder(mContext)
+                .setSmallIcon(R.drawable.bt_incomming_file_notification)
+                .setOnlyAlertOnce(true)
+                .setOngoing(true)
+                .setDefaults(Notification.DEFAULT_SOUND)
+                .setTicker(title)
+                .setContentTitle(title)
+                .setContentText(caption)
+                .setWhen(timeStamp)
+//              .setStyle(new Notification.BigTextStyle().bigText());
+                .addAction(R.drawable.ic_action_accept , mContext.getString(R.string.incoming_file_confirm_ok), incomingPendingIntent)
+                .addAction(R.drawable.ic_action_cancel , mContext.getString(R.string.incoming_file_confirm_cancel), incomingPendingIntent)
+                .setDeleteIntent(hidePendingIntent)
+                .build();
 
             mNotificationMgr.notify(id, n);
         }
