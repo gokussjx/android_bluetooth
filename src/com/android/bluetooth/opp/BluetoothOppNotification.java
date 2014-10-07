@@ -505,7 +505,7 @@ class BluetoothOppNotification {
             intent = new Intent(Constants.ACTION_HIDE);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             intent.setDataAndNormalize(contentUri);
-            n.setDeleteIntent(PendingIntent.getBroadcast(mContext, 0, intent, 0))
+            n.setDeleteIntent(PendingIntent.getBroadcast(mContext, 0, intent, 0));
 
             mNotificationMgr.notify(id, n);
         }
