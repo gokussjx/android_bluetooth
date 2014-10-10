@@ -46,6 +46,7 @@ import android.util.Log;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Process;
+import android.text.format.Formatter;
 import java.util.HashMap;
 
 /**
@@ -85,6 +86,8 @@ class BluetoothOppNotification {
 
     static final String WHERE_CONFIRM_PENDING = BluetoothShare.USER_CONFIRMATION + " == '"
             + BluetoothShare.USER_CONFIRMATION_PENDING + "'" + " AND " + visible;
+
+    private BluetoothOppTransferInfo mTransInfo;
 
     public NotificationManager mNotificationMgr;
 
@@ -483,6 +486,16 @@ class BluetoothOppNotification {
             long timeStamp = cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP));
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
 
+            mTransInfo = new BluetoothOppTransferInfo();
+            mTransInfo = BluetoothOppUtility.queryRecord(this, contentUri);
+            if (mTransInfo == null) {
+                if (V) Log.e(TAG, "Error: Can not get data from db");
+            }
+
+            CharSequence subtext = mContext
+                    .getString(R.string.incoming_file_confirm_content, mTransInfo.mDeviceName,
+                        mTransInfo.mFileName, Formatter.formatFileSize(this, mTransInfo.mTotalBytes));
+
             PendingIntent incomingPendingIntent;
             PendingIntent hidePendingIntent;
 
@@ -506,6 +519,7 @@ class BluetoothOppNotification {
                 .setTicker(title)
                 .setContentTitle(title)
                 .setContentText(caption)
+                .setSubText(subtext)
                 .setWhen(timeStamp)
 //              .setStyle(new Notification.BigTextStyle().bigText());
                 .addAction(R.drawable.ic_action_accept , mContext.getString(R.string.incoming_file_confirm_ok), incomingPendingIntent)
